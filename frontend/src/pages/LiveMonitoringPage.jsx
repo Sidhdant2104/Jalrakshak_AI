@@ -14,6 +14,9 @@ export default function LiveMonitoringPage({ onLocate }) {
         </div>
       </Card>
       <Card eyebrow="Streaming" title="Parameter watch">
+        <p className="tiny-note" style={{ marginTop: 0 }}>
+          Physical scope: 2 nodes (SN1, SN2) · 8 sensors (Turbidity · TDS · Flow · Temperature ×2).
+        </p>
         <div className="live-params">
           {qualityParams.map((p) => (
             <div key={p.id} className="live-row">

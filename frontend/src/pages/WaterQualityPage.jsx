@@ -15,7 +15,7 @@ export default function WaterQualityPage() {
           </div>
           <p className="muted">Normal range {p.range}</p>
           <Sparkline data={p.spark} width={220} height={42} color={statusColor(p.status)} />
-          <p className="tiny-note">Dashboard demo series. Not claimed as a dedicated extra sensor channel.</p>
+          <p className="tiny-note">Physical channel average from SN1 / SN2 ({p.sensors?.join(", ")}). Scope: 2 nodes · 8 sensors.</p>
         </Card>
       ))}
     </div>

@@ -17,17 +17,17 @@ import { prototypeNetwork } from "./data/prototypeNetwork";
 
 const TITLES = {
   dashboard: ["Situation overview", "What is happening · where · severity · action"],
-  live: ["Live monitoring", "Streaming view of the locked prototype loop"],
+  live: ["Live monitoring", "SN1 / SN2 streaming — 8 physical sensor channels"],
   network: ["Network map", "Schematic GIS — coordinates from prototypeNetwork.js"],
-  quality: ["Water quality", "Parameter watch with demo ranges"],
+  quality: ["Water quality", "Turbidity · TDS · Flow · Temperature from SN1 / SN2"],
   treatment: ["Treatment & purification", "W1 process train"],
   analysis: ["AI analysis", "Anomaly, cause, location, recommended action"],
   alerts: ["Incident center", "Severity, evidence, and response"],
-  analytics: ["Analytics", "24h · 7d · 30d · custom"],
+  analytics: ["Analytics", "Trends for the 4 physical sensor types"],
   citizen: ["Citizen reports", "Complaints correlated to network assets"],
   operations: ["Operations", "Incidents and control actions"],
   reports: ["Reports", "Quality, treatment, incidents, sensors, zones"],
-  sensors: ["Sensors", "SN1 and SN2 share ESP-32-001"],
+  sensors: ["Sensors", "2 nodes · 8 sensors — Turbidity · TDS · Flow · Temp ×2"],
   settings: ["Settings", "Session preferences"],
 };
 

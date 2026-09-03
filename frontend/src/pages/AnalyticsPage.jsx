@@ -3,13 +3,10 @@ import Card from "../components/ui/Card";
 import { analyticsSeries } from "../data/dashboardMock";
 
 const PARAMS = [
-  ["ph", "pH"],
   ["turbidity", "Turbidity"],
   ["tds", "TDS"],
-  ["chlorine", "Chlorine"],
-  ["temperature", "Temperature"],
-  ["pressure", "Pressure"],
   ["flow", "Flow"],
+  ["temperature", "Temperature"],
   ["wqi", "Water Quality Index"],
 ];
 

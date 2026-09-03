@@ -1,31 +1,102 @@
+import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { Icon } from "../ui/Icons";
+import { useTheme } from "../../hooks/useTheme";
 
 export default function AppShell({ page, onNavigate, children, title, subtitle }) {
+  const [theme, setTheme] = useTheme();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isDashboard = page === "dashboard";
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [page]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   return (
-    <div className="app-shell">
-      <Sidebar page={page} onNavigate={onNavigate} />
+    <div className={`app-shell theme-${theme}${mobileOpen ? " nav-open" : ""}`}>
+      <Sidebar
+        page={page}
+        onNavigate={onNavigate}
+        theme={theme}
+        onThemeChange={setTheme}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
+
       <div className="app-main">
-        <header className="topbar">
-          <div>
-            <p className="welcome">Welcome back, Officer</p>
-            <h2>{title}</h2>
-            {subtitle ? <p className="muted">{subtitle}</p> : null}
+        <div className="mobile-bar">
+          <button
+            type="button"
+            className="icon-action"
+            aria-label="Open menu"
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen(true)}
+          >
+            <Icon name="menu" size={18} />
+          </button>
+          <div className="mobile-bar-brand">
+            <img src="/logo-mark.png?v=3" alt="JalRakshak AI" />
+            <strong>JalRakshak AI</strong>
           </div>
-          <div className="topbar-meta">
-            <div>
-              <span>Shift</span>
-              <strong>A · Control</strong>
+          <button type="button" className="report-btn report-btn-compact" onClick={() => onNavigate("alerts")}>
+            <Icon name="plus" size={15} />
+            <span className="report-label">Report</span>
+          </button>
+        </div>
+
+        {isDashboard ? (
+          <header className="topbar topbar-dash">
+            <div className="topbar-copy">
+              <h2>Welcome back, Officer!</h2>
+              <p className="muted">Here&apos;s your real-time water network overview</p>
             </div>
-            <div>
-              <span>Network</span>
-              <strong>Jarakshak-demo-01</strong>
+            <div className="topbar-actions">
+              <button type="button" className="icon-action" aria-label="Notifications">
+                <Icon name="bell" size={16} />
+                <i className="notif-dot" />
+              </button>
+              <button type="button" className="icon-action" aria-label="Search">
+                <Icon name="search" size={16} />
+              </button>
+              <button
+                type="button"
+                className="icon-action"
+                aria-label="Preferences"
+                onClick={() => onNavigate("settings")}
+              >
+                <Icon name="sliders" size={16} />
+              </button>
+              <button type="button" className="report-btn" onClick={() => onNavigate("alerts")}>
+                <Icon name="plus" size={15} />
+                <span className="report-label">Report Incident</span>
+              </button>
             </div>
-            <div className="officer-chip">
-              <span className="live-dot" />
-              LIVE
+          </header>
+        ) : (
+          <header className="topbar">
+            <div className="topbar-copy">
+              <p className="welcome">Welcome back, Officer</p>
+              <h2>{title}</h2>
+              {subtitle ? <p className="muted">{subtitle}</p> : null}
             </div>
-          </div>
-        </header>
+            <div className="topbar-actions">
+              <button type="button" className="icon-action" aria-label="Notifications">
+                <Icon name="bell" size={16} />
+              </button>
+              <button type="button" className="report-btn" onClick={() => onNavigate("alerts")}>
+                <Icon name="plus" size={15} />
+                <span className="report-label">Report Incident</span>
+              </button>
+            </div>
+          </header>
+        )}
         <div className="page-body">{children}</div>
       </div>
     </div>
