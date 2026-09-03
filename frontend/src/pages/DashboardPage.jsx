@@ -13,18 +13,32 @@ import {
 } from "../data/dashboardMock";
 import { statusColor } from "../utils/status";
 
-const LEGEND = [
-  ["Healthy", "ok"],
-  ["Warning", "warn"],
-  ["Critical", "crit"],
-  ["Contamination", "contam"],
-  ["Offline", "off"],
-];
-
-export default function DashboardPage({ onNavigate, onSelect }) {
+export default function DashboardPage({ onNavigate, onLocate }) {
+  const primary = alerts[0];
   return (
     <div className="dash">
       <p className="demo-banner">{DEMO_DISCLAIMER}</p>
+      <section className="sit-bar">
+        <div>
+          <p className="kicker">What</p>
+          <h3>{aiInsight.headline}</h3>
+        </div>
+        <div>
+          <p className="kicker">Where</p>
+          <p>{aiInsight.affected}</p>
+        </div>
+        <div>
+          <p className="kicker">How serious</p>
+          <p>Contamination · confidence {aiInsight.confidence}</p>
+        </div>
+        <div>
+          <p className="kicker">What should be done</p>
+          <p>{aiInsight.action}</p>
+        </div>
+        <button type="button" className="primary-btn" onClick={() => onLocate(primary)}>
+          Locate on map
+        </button>
+      </section>
 
       <div className="kpi-row">
         {kpis.map((k) => (
@@ -35,79 +49,48 @@ export default function DashboardPage({ onNavigate, onSelect }) {
               <span>{k.unit}</span>
             </div>
             <p className="kpi-delta">{k.delta}</p>
-            <p className="tiny-note">{k.hint}</p>
           </article>
         ))}
       </div>
 
       <div className="dash-main">
         <Card
-          className="map-card"
-          eyebrow="Live network map"
-          title="Prototype topology"
+          eyebrow="Network"
+          title="Live schematic"
           action={
             <button type="button" className="ghost-btn" onClick={() => onNavigate("network")}>
-              Open full map
+              Expand map
             </button>
           }
         >
-          <div className="map-legend-row tight">
-            {LEGEND.map(([label, tone]) => (
-              <span key={label} className="legend-item">
-                <i className={`legend-dot ${tone}`} />
-                {label}
-              </span>
-            ))}
-          </div>
           <div className="map-embed">
             <NetworkMap
               compact
-              selectedId={null}
-              onSelect={(sel) => {
-                onSelect(sel);
-                onNavigate("network");
-              }}
+              onSelect={(sel) => onLocate(sel)}
             />
           </div>
         </Card>
-
         <div className="dash-col">
-          <Card eyebrow="JalRakshak AI" title={aiInsight.title} className="ai-card">
-            <p className="ai-head">{aiInsight.headline}</p>
+          <Card className="ai-card" eyebrow="JalRakshak AI" title={aiInsight.title}>
+            <p className="ai-head">Possible upstream sediment / mining ingress on P2.</p>
             <dl className="ai-dl">
-              <div>
-                <dt>What happened</dt>
-                <dd>{aiInsight.whatHappened}</dd>
-              </div>
-              <div>
-                <dt>Possible cause</dt>
-                <dd>{aiInsight.possibleCause}</dd>
-              </div>
-              <div>
-                <dt>Affected location</dt>
-                <dd>{aiInsight.affected}</dd>
-              </div>
-              <div>
-                <dt>Recommended action</dt>
-                <dd>{aiInsight.action}</dd>
-              </div>
+              <div><dt>Likely cause</dt><dd>{aiInsight.possibleCause}</dd></div>
+              <div><dt>Recommended action</dt><dd>Inspect intake path at J1 and increase filtration at W1.</dd></div>
             </dl>
+            <div className="confidence" aria-hidden><i style={{ width: aiInsight.confidence }} /></div>
             <div className="ai-meta">
               <span>Confidence {aiInsight.confidence}</span>
               <span>{aiInsight.model}</span>
             </div>
           </Card>
-
-          <Card eyebrow="Active alerts" title="Priority queue">
+          <Card eyebrow="Active alerts" title="Priority">
             <ul className="alert-list">
               {alerts.slice(0, 4).map((a) => (
-                <li key={a.id}>
+                <li key={a.id} onClick={() => onLocate(a)}>
                   <span className={`sev sev-${a.severity.toLowerCase()}`} />
                   <div>
                     <strong>{a.title}</strong>
-                    <p>
-                      {a.location} · {a.time}
-                    </p>
+                    <p>{a.location} · {a.time}</p>
                   </div>
                   <StatusBadge status={a.severity} />
                 </li>
@@ -125,47 +108,31 @@ export default function DashboardPage({ onNavigate, onSelect }) {
                 <span>{p.label}</span>
                 <StatusBadge status={p.status} />
               </header>
-              <strong>
-                {p.value}
-                <em>{p.unit}</em>
-              </strong>
+              <strong>{p.value}<em>{p.unit}</em></strong>
               <p>Normal {p.range}</p>
               <Sparkline data={p.spark} color={statusColor(p.status)} />
-              <span className="tiny-note">Dashboard demo series</span>
             </article>
           ))}
         </div>
       </Card>
 
       <div className="dash-bottom">
-        <Card eyebrow="Network status" title="Health mix">
+        <Card eyebrow="Network health" title="Status mix">
           {networkStatusMix.map((row) => (
             <div key={row.label} className="mix-row">
-              <span>
-                <i className={`legend-dot ${row.tone}`} />
-                {row.label}
-              </span>
-              <div className="mix-bar">
-                <i className={row.tone} style={{ width: `${row.value}%` }} />
-              </div>
+              <span><i className={`legend-dot ${row.tone}`} />{row.label}</span>
+              <div className="mix-bar"><i className={row.tone} style={{ width: `${row.value}%` }} /></div>
               <b>{row.value}%</b>
             </div>
           ))}
         </Card>
-
-        <Card eyebrow="Recent alerts" title="Incident timeline">
+        <Card eyebrow="Recent incidents" title="Timeline">
           <ol className="timeline">
             {alerts.map((a) => (
-              <li key={a.id}>
-                <span className="time">{a.time}</span>
-                <span>
-                  {a.title} · {a.location}
-                </span>
-              </li>
+              <li key={a.id}><span className="time">{a.time}</span><span>{a.title} · {a.location}</span></li>
             ))}
           </ol>
         </Card>
-
         <Card eyebrow="System performance" title="Control room">
           <div className="perf-grid">
             {performance.map((p) => (

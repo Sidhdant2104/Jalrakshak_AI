@@ -10,17 +10,12 @@ export default function WaterQualityPage() {
       {qualityParams.map((p) => (
         <Card key={p.id} eyebrow="Parameter" title={p.label}>
           <div className="quality-hero">
-            <strong>
-              {p.value}
-              <em>{p.unit}</em>
-            </strong>
+            <strong>{p.value}<em>{p.unit}</em></strong>
             <StatusBadge status={p.status} />
           </div>
           <p className="muted">Normal range {p.range}</p>
           <Sparkline data={p.spark} width={220} height={42} color={statusColor(p.status)} />
-          <p className="tiny-note">
-            Demo dashboard metric. Not claimed as a dedicated hardware channel unless present on SN1/SN2.
-          </p>
+          <p className="tiny-note">Dashboard demo series. Not claimed as a dedicated extra sensor channel.</p>
         </Card>
       ))}
     </div>

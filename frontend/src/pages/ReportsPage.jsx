@@ -7,8 +7,8 @@ export default function ReportsPage() {
       {reports.map((r) => (
         <Card key={r.id} eyebrow={r.id} title={r.title}>
           <p>{r.period}</p>
+          <p>{r.summary}</p>
           <span className="pill">{r.status}</span>
-          <p className="tiny-note">Export is a prototype placeholder.</p>
         </Card>
       ))}
     </div>

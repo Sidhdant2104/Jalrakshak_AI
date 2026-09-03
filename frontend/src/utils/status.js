@@ -39,3 +39,13 @@ export function statusTone(status) {
       return "off";
   }
 }
+
+export function matchesStatusFilter(status, filter) {
+  if (!filter || filter === "all") return true;
+  const tone = statusTone(status);
+  if (filter === "healthy") return tone === "ok";
+  if (filter === "warning") return tone === "warn";
+  if (filter === "critical") return tone === "crit" || tone === "contam";
+  if (filter === "offline") return tone === "off";
+  return true;
+}

@@ -1,6 +1,6 @@
 import Sidebar from "./Sidebar";
 
-export default function AppShell({ page, onNavigate, children, title, subtitle, actions }) {
+export default function AppShell({ page, onNavigate, children, title, subtitle }) {
   return (
     <div className="app-shell">
       <Sidebar page={page} onNavigate={onNavigate} />
@@ -11,11 +11,18 @@ export default function AppShell({ page, onNavigate, children, title, subtitle, 
             <h2>{title}</h2>
             {subtitle ? <p className="muted">{subtitle}</p> : null}
           </div>
-          <div className="topbar-actions">
-            {actions}
+          <div className="topbar-meta">
+            <div>
+              <span>Shift</span>
+              <strong>A · Control</strong>
+            </div>
+            <div>
+              <span>Network</span>
+              <strong>Jarakshak-demo-01</strong>
+            </div>
             <div className="officer-chip">
               <span className="live-dot" />
-              Ops · Demo
+              LIVE
             </div>
           </div>
         </header>

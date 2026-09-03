@@ -1,17 +1,20 @@
+import { Icon } from "../ui/Icons";
+import { alerts } from "../../data/dashboardMock";
+
 const NAV = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "live", label: "Live Monitoring" },
-  { id: "network", label: "Network Map" },
-  { id: "quality", label: "Water Quality" },
-  { id: "treatment", label: "Treatment & Purification" },
-  { id: "analysis", label: "AI Analysis" },
-  { id: "alerts", label: "Alerts" },
-  { id: "analytics", label: "Analytics" },
-  { id: "citizen", label: "Citizen Reports" },
-  { id: "operations", label: "Operations" },
-  { id: "reports", label: "Reports" },
-  { id: "sensors", label: "Sensors" },
-  { id: "settings", label: "Settings" },
+  { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+  { id: "live", label: "Live Monitoring", icon: "live" },
+  { id: "network", label: "Network Map", icon: "network" },
+  { id: "quality", label: "Water Quality", icon: "quality" },
+  { id: "treatment", label: "Treatment & Purification", icon: "treatment" },
+  { id: "analysis", label: "AI Analysis", icon: "analysis" },
+  { id: "alerts", label: "Alerts", icon: "alerts" },
+  { id: "analytics", label: "Analytics", icon: "analytics" },
+  { id: "citizen", label: "Citizen Reports", icon: "citizen" },
+  { id: "operations", label: "Operations", icon: "operations", badge: 3 },
+  { id: "reports", label: "Reports", icon: "reports" },
+  { id: "sensors", label: "Sensors", icon: "sensors" },
+  { id: "settings", label: "Settings", icon: "settings" },
 ];
 
 export default function Sidebar({ page, onNavigate }) {
@@ -32,13 +35,15 @@ export default function Sidebar({ page, onNavigate }) {
             className={page === item.id ? "nav-item active" : "nav-item"}
             onClick={() => onNavigate(item.id)}
           >
-            {item.label}
+            <Icon name={item.icon} />
+            <span>{item.label}</span>
+            {item.id === "alerts" ? <em className="nav-badge">{alerts.length}</em> : item.badge ? <em className="nav-badge">{item.badge}</em> : null}
           </button>
         ))}
       </nav>
       <div className="sidebar-foot">
         <span className="live-dot" />
-        Prototype loop · ESP-32-001
+        Loop live · ESP-32-001
       </div>
     </aside>
   );

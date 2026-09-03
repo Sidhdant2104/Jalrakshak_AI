@@ -16,38 +16,43 @@ import SettingsPage from "./pages/SettingsPage";
 import { prototypeNetwork } from "./data/prototypeNetwork";
 
 const TITLES = {
-  dashboard: ["Command dashboard", "Real-time water network intelligence"],
+  dashboard: ["Situation overview", "What is happening · where · severity · action"],
   live: ["Live monitoring", "Streaming view of the locked prototype loop"],
-  network: ["Network map", "Exact coordinates from prototypeNetwork.js"],
-  quality: ["Water quality", "Parameter cards with demo ranges and status"],
+  network: ["Network map", "Schematic GIS — coordinates from prototypeNetwork.js"],
+  quality: ["Water quality", "Parameter watch with demo ranges"],
   treatment: ["Treatment & purification", "W1 process train"],
-  analysis: ["AI analysis", "Anomaly, contamination, leakage, and risk"],
-  alerts: ["Alerts", "Severity, location, and recommended action"],
-  analytics: ["Analytics", "24h · 7 days · 30 days · custom"],
-  citizen: ["Citizen reports", "Complaints with AI correlation"],
+  analysis: ["AI analysis", "Anomaly, cause, location, recommended action"],
+  alerts: ["Incident center", "Severity, evidence, and response"],
+  analytics: ["Analytics", "24h · 7d · 30d · custom"],
+  citizen: ["Citizen reports", "Complaints correlated to network assets"],
   operations: ["Operations", "Incidents and control actions"],
-  reports: ["Reports", "Briefs for the control room"],
+  reports: ["Reports", "Quality, treatment, incidents, sensors, zones"],
   sensors: ["Sensors", "SN1 and SN2 share ESP-32-001"],
-  settings: ["Settings", "Session preferences for this prototype"],
+  settings: ["Settings", "Session preferences"],
 };
+
+function resolveTarget(alert) {
+  const nodes = prototypeNetwork.nodes;
+  const pipes = prototypeNetwork.pipelines;
+  if (alert.targetType === "pipeline") {
+    const data = pipes.find((p) => p.id === alert.targetId);
+    return data ? { kind: "pipeline", id: data.id, data } : null;
+  }
+  const data = nodes.find((n) => n.id === alert.targetId);
+  if (!data) return null;
+  const kind = data.type === "ZONE" ? "zone" : data.type === "SENSORS" ? "sensor" : "node";
+  return { kind, id: data.id, data };
+}
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [selection, setSelection] = useState(null);
+  const [focusToken, setFocusToken] = useState(0);
 
-  const locateAlert = (alert) => {
-    const nodes = prototypeNetwork.nodes;
-    const pipes = prototypeNetwork.pipelines;
-    if (alert.targetType === "pipeline") {
-      const data = pipes.find((p) => p.id === alert.targetId);
-      setSelection(data ? { kind: "pipeline", id: data.id, data } : null);
-    } else if (alert.targetType === "zone") {
-      const data = nodes.find((n) => n.id === alert.targetId);
-      setSelection(data ? { kind: "zone", id: data.id, data } : null);
-    } else {
-      const data = nodes.find((n) => n.id === alert.targetId);
-      setSelection(data ? { kind: "node", id: data.id, data } : null);
-    }
+  const locate = (alertOrSel) => {
+    const sel = alertOrSel?.targetId ? resolveTarget(alertOrSel) : alertOrSel;
+    setSelection(sel);
+    setFocusToken((n) => n + 1);
     setPage("network");
   };
 
@@ -55,18 +60,18 @@ export default function App() {
 
   return (
     <AppShell page={page} onNavigate={setPage} title={title} subtitle={subtitle}>
-      {page === "dashboard" && <DashboardPage onNavigate={setPage} onSelect={setSelection} />}
-      {page === "live" && <LiveMonitoringPage onNavigate={setPage} onSelect={setSelection} />}
-      {page === "network" && <NetworkPage selection={selection} onSelect={setSelection} />}
+      {page === "dashboard" && <DashboardPage onNavigate={setPage} onLocate={locate} />}
+      {page === "live" && <LiveMonitoringPage onLocate={locate} />}
+      {page === "network" && <NetworkPage selection={selection} onSelect={setSelection} focusToken={focusToken} />}
       {page === "quality" && <WaterQualityPage />}
       {page === "treatment" && <TreatmentPage />}
-      {page === "analysis" && <AiAnalysisPage />}
-      {page === "alerts" && <AlertsPage onLocate={locateAlert} />}
+      {page === "analysis" && <AiAnalysisPage onLocate={locate} />}
+      {page === "alerts" && <AlertsPage onLocate={locate} />}
       {page === "analytics" && <AnalyticsPage />}
-      {page === "citizen" && <CitizenReportsPage />}
+      {page === "citizen" && <CitizenReportsPage onLocate={locate} />}
       {page === "operations" && <OperationsPage />}
       {page === "reports" && <ReportsPage />}
-      {page === "sensors" && <SensorsPage />}
+      {page === "sensors" && <SensorsPage onLocate={locate} />}
       {page === "settings" && <SettingsPage />}
     </AppShell>
   );

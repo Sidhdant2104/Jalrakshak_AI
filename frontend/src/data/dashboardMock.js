@@ -145,24 +145,53 @@ export const performance = [
 ];
 
 export const nodeTelemetry = {
-  W1: { ph: 7.3, turbidity: 1.8, tds: 290, temperature: 24.1, pressure: 3.4, lastReading: "13:38", trend: [7.2, 7.2, 7.3, 7.3, 7.3] },
-  W2: { ph: 7.5, turbidity: 2.4, tds: 310, temperature: 23.8, pressure: 3.1, lastReading: "13:38", trend: [7.4, 7.5, 7.5, 7.5, 7.4] },
-  J1: { ph: 7.4, turbidity: 5.1, tds: 360, temperature: 24.4, pressure: 2.9, lastReading: "13:37", trend: [7.3, 7.4, 7.4, 7.5, 7.4] },
-  J2: { ph: 7.4, turbidity: 3.2, tds: 340, temperature: 24.2, pressure: 2.3, lastReading: "13:37", trend: [7.4, 7.4, 7.3, 7.4, 7.4] },
-  J3: { ph: 7.2, turbidity: 2.0, tds: 305, temperature: 24.0, pressure: 3.0, lastReading: "13:36", trend: [7.2, 7.2, 7.1, 7.2, 7.2] },
-  SN1: { ph: 7.4, turbidity: 6.8, tds: 412, temperature: 24.6, pressure: 2.7, lastReading: "13:39", trend: [7.1, 7.2, 7.4, 7.5, 7.4] },
-  SN2: { ph: 7.3, turbidity: 2.6, tds: 328, temperature: 24.3, pressure: 2.8, lastReading: "13:39", trend: [7.3, 7.3, 7.2, 7.3, 7.3] },
+  W1: { ph: 7.3, turbidity: 1.8, tds: 290, temperature: 24.1, chlorine: 0.46, pressure: 3.4, lastReading: "4 sec ago", trend: [7.2, 7.2, 7.3, 7.3, 7.3] },
+  W2: { ph: 7.5, turbidity: 2.4, tds: 310, temperature: 23.8, chlorine: 0.38, pressure: 3.1, lastReading: "4 sec ago", trend: [7.4, 7.5, 7.5, 7.5, 7.4] },
+  J1: { ph: 7.4, turbidity: 5.1, tds: 360, temperature: 24.4, chlorine: 0.31, pressure: 2.9, lastReading: "6 sec ago", trend: [7.3, 7.4, 7.4, 7.5, 7.4] },
+  J2: { ph: 7.4, turbidity: 3.2, tds: 340, temperature: 24.2, chlorine: 0.18, pressure: 2.3, lastReading: "6 sec ago", trend: [7.4, 7.4, 7.3, 7.4, 7.4] },
+  J3: { ph: 7.2, turbidity: 2.0, tds: 305, temperature: 24.0, chlorine: 0.40, pressure: 3.0, lastReading: "8 sec ago", trend: [7.2, 7.2, 7.1, 7.2, 7.2] },
+  SN1: { ph: 7.2, turbidity: 2.1, tds: 180, temperature: 24.0, chlorine: 0.42, pressure: 3.8, lastReading: "4 sec ago", trend: [7.1, 7.15, 7.18, 7.2, 7.2] },
+  SN2: { ph: 7.3, turbidity: 2.6, tds: 328, temperature: 24.3, chlorine: 0.22, pressure: 2.8, lastReading: "4 sec ago", trend: [7.3, 7.3, 7.2, 7.3, 7.3] },
 };
 
 export const zoneTelemetry = {
-  "Z-MINING": { waterQuality: 62, risk: "High", sensors: 0, note: "No dedicated zone sensor in topology. P2 into this zone is CONTAMINATION." },
-  "Z-URBAN": { waterQuality: 74, risk: "Elevated", sensors: 0, note: "Fed by P6 (WARNING). Chlorine residual below target (demo)." },
-  "Z-RURAL": { waterQuality: 88, risk: "Low", sensors: 0, note: "P9 normal. No dedicated zone sensor in topology (demo)." },
+  "Z-MINING": {
+    waterQuality: 62,
+    risk: "High",
+    sensors: 0,
+    connectedInfra: ["P2", "J1"],
+    incidents: ["AL-1042", "AL-1038"],
+    note: "No dedicated zone sensor in topology. Feeder P2 is CONTAMINATION.",
+  },
+  "Z-URBAN": {
+    waterQuality: 74,
+    risk: "Elevated",
+    sensors: 0,
+    connectedInfra: ["P6", "J2"],
+    incidents: ["AL-1040", "AL-1033"],
+    note: "No dedicated zone sensor. Fed by P6 (WARNING).",
+  },
+  "Z-RURAL": {
+    waterQuality: 88,
+    risk: "Low",
+    sensors: 0,
+    connectedInfra: ["P9", "J3"],
+    incidents: [],
+    note: "No dedicated zone sensor. P9 is NORMAL.",
+  },
 };
 
 export const pipelineTelemetry = {
-  P2: { flow: 88, pressure: 2.6, note: "Contamination flag on mining feeder" },
-  P6: { flow: 142, pressure: 2.1, note: "Urban feeder under warning" },
+  P1: { flow: 120, pressure: 3.3, lastInspection: "22 Aug 2026", alerts: 0 },
+  P2: { flow: 88, pressure: 2.6, lastInspection: "01 Sep 2026", alerts: 2, note: "Contamination flag on mining feeder" },
+  P3: { flow: 112, pressure: 3.0, lastInspection: "19 Aug 2026", alerts: 0 },
+  P4: { flow: 118, pressure: 3.1, lastInspection: "19 Aug 2026", alerts: 0 },
+  P5: { flow: 126, pressure: 2.9, lastInspection: "12 Aug 2026", alerts: 0 },
+  P6: { flow: 142, pressure: 2.1, lastInspection: "30 Aug 2026", alerts: 1, note: "Urban feeder under warning" },
+  P7: { flow: 108, pressure: 2.8, lastInspection: "12 Aug 2026", alerts: 0 },
+  P8: { flow: 104, pressure: 2.9, lastInspection: "12 Aug 2026", alerts: 0 },
+  P9: { flow: 96, pressure: 3.0, lastInspection: "08 Aug 2026", alerts: 0 },
+  P10: { flow: 110, pressure: 3.2, lastInspection: "22 Aug 2026", alerts: 0 },
 };
 
 export const analyticsSeries = {
@@ -202,13 +231,13 @@ export const analyticsSeries = {
 };
 
 export const treatmentStages = [
-  { id: "raw", name: "Raw Water", detail: "Intake from W1 treatment plant header." },
-  { id: "pre", name: "Pre-filtration", detail: "Screens coarse sediment before clarification." },
-  { id: "sed", name: "Sedimentation", detail: "Settling basin — elevate dwell if turbidity stays high." },
-  { id: "chem", name: "Chemical Treatment", detail: "Coagulant / pH correction window." },
-  { id: "filt", name: "Filtration", detail: "AI recommends increasing this stage now." },
-  { id: "dis", name: "Disinfection", detail: "Chlorine residual currently below urban target." },
-  { id: "safe", name: "Safe Water", detail: "Dispatch toward J1 and distribution." },
+  { id: "raw", name: "Raw Water", status: "WARNING", detail: "Intake from W1 treatment plant header.", before: "8.4 NTU", after: "8.4 NTU", reading: "Turbidity inbound" },
+  { id: "pre", name: "Pre-filtration", status: "NORMAL", detail: "Screens coarse sediment before clarification.", before: "8.4 NTU", after: "6.1 NTU", reading: "Screen Δ −2.3 NTU" },
+  { id: "sed", name: "Sedimentation", status: "NORMAL", detail: "Settling basin — elevate dwell if turbidity stays high.", before: "6.1 NTU", after: "3.8 NTU", reading: "Dwell 42 min" },
+  { id: "chem", name: "Chemical Treatment", status: "NORMAL", detail: "Coagulant / pH correction window.", before: "pH 7.8", after: "pH 7.3", reading: "Dose hold" },
+  { id: "filt", name: "Filtration", status: "WARNING", detail: "AI recommends increasing this stage now.", before: "3.8 NTU", after: "1.9 NTU", reading: "Headloss rising" },
+  { id: "dis", name: "Disinfection", status: "WARNING", detail: "Chlorine residual currently below urban target.", before: "0.12 mg/L", after: "0.18 mg/L", reading: "Residual short" },
+  { id: "safe", name: "Safe Water", status: "NORMAL", detail: "Dispatch toward J1 and distribution.", before: "1.9 NTU", after: "1.8 NTU", reading: "W1 header ready" },
 ];
 
 export const aiModules = [
@@ -221,12 +250,12 @@ export const aiModules = [
 ];
 
 export const citizenReports = [
-  { id: "CR-219", type: "No water", location: "Rural Zone ward 4", time: "18 min ago", status: "OPEN", correlation: "No matching outage on P9. Likely local service connection (demo)." },
-  { id: "CR-218", type: "Bad smell", location: "Urban Zone block C", time: "41 min ago", status: "REVIEW", correlation: "Aligns with low chlorine on P6 urban feeder." },
-  { id: "CR-217", type: "Bad taste", location: "Urban Zone block A", time: "1h ago", status: "REVIEW", correlation: "Possible disinfection by-product window; residual is low." },
-  { id: "CR-216", type: "Discoloration", location: "Mining Zone edge", time: "2h ago", status: "LINKED", correlation: "Strong correlation with P2 contamination into Mining Zone." },
-  { id: "CR-214", type: "Low pressure", location: "Urban Zone tower 2", time: "3h ago", status: "LINKED", correlation: "Matches P6 pressure warning at J2." },
-  { id: "CR-211", type: "Suspected contamination", location: "J1 · Mining feeder", time: "4h ago", status: "ESCALATED", correlation: "AI flags P2 as the contamination-risk cluster." },
+  { id: "CR-219", type: "No water", location: "Rural Zone ward 4", time: "18 min ago", status: "OPEN", severity: "WARNING", correlation: "No matching outage on P9. Likely local service connection (demo).", targetId: "Z-RURAL", targetType: "zone" },
+  { id: "CR-218", type: "Bad smell", location: "Urban Zone block C", time: "41 min ago", status: "REVIEW", severity: "WARNING", correlation: "Aligns with low chlorine on P6 urban feeder.", targetId: "Z-URBAN", targetType: "zone" },
+  { id: "CR-217", type: "Bad taste", location: "Urban Zone block A", time: "1h ago", status: "REVIEW", severity: "WARNING", correlation: "Possible disinfection by-product window; residual is low.", targetId: "Z-URBAN", targetType: "zone" },
+  { id: "CR-216", type: "Discoloration", location: "Mining Zone edge", time: "2h ago", status: "LINKED", severity: "CONTAMINATION", correlation: "Strong correlation with P2 contamination into Mining Zone.", targetId: "P2", targetType: "pipeline" },
+  { id: "CR-214", type: "Low pressure", location: "Urban Zone tower 2", time: "3h ago", status: "LINKED", severity: "WARNING", correlation: "Matches P6 pressure warning at J2.", targetId: "P6", targetType: "pipeline" },
+  { id: "CR-211", type: "Suspected contamination", location: "J1 · Mining feeder", time: "4h ago", status: "ESCALATED", severity: "CONTAMINATION", correlation: "AI flags P2 as the contamination-risk cluster.", targetId: "P2", targetType: "pipeline" },
 ];
 
 export const operations = [
@@ -264,8 +293,9 @@ export const sensorHealth = [
 ];
 
 export const reports = [
-  { id: "R-09", title: "Daily water quality brief", period: "02 Sep 2026", status: "Ready" },
-  { id: "R-08", title: "Network incident log", period: "Last 7 days", status: "Ready" },
-  { id: "R-07", title: "Treatment plant performance", period: "August 2026", status: "Draft" },
-  { id: "R-06", title: "Citizen complaint correlation", period: "Last 30 days", status: "Ready" },
+  { id: "R-12", title: "Daily Water Quality", period: "02 Sep 2026", status: "Ready", summary: "WQI 86. Turbidity watch on dashboard series; P2 contamination dominates risk." },
+  { id: "R-11", title: "Treatment", period: "Shift A", status: "Ready", summary: "Filtration headloss rising. Disinfection residual short of urban target." },
+  { id: "R-10", title: "Incident", period: "Last 24h", status: "Ready", summary: "4 open alerts. Primary: P2 mining feeder contamination." },
+  { id: "R-09", title: "Sensor Health", period: "02 Sep 2026", status: "Ready", summary: "SN1 and SN2 online on shared ESP-32-001. Battery 76% (demo)." },
+  { id: "R-08", title: "Zone Quality", period: "02 Sep 2026", status: "Ready", summary: "Mining high risk, Urban elevated, Rural low." },
 ];
