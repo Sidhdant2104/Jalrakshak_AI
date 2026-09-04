@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 const STORAGE_KEY = "jalrakshak-theme";
+const ThemeContext = createContext(["dark", () => {}]);
 
 function readStoredTheme() {
   try {
@@ -12,13 +13,21 @@ function readStoredTheme() {
   return "dark";
 }
 
-export function useTheme() {
+function applyTheme(theme) {
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.style.colorScheme = theme;
+  root.classList.toggle("theme-light", theme === "light");
+  root.classList.toggle("theme-dark", theme === "dark");
+  document.body?.classList.toggle("theme-light", theme === "light");
+  document.body?.classList.toggle("theme-dark", theme === "dark");
+}
+
+export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(readStoredTheme);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.classList.toggle("theme-light", theme === "light");
-    document.documentElement.classList.toggle("theme-dark", theme === "dark");
+    applyTheme(theme);
     try {
       localStorage.setItem(STORAGE_KEY, theme);
     } catch {
@@ -26,9 +35,19 @@ export function useTheme() {
     }
   }, [theme]);
 
-  const setTheme = (next) => {
+  const setTheme = useCallback((next) => {
     setThemeState(next === "light" ? "light" : "dark");
-  };
+  }, []);
 
-  return [theme, setTheme];
+  const toggleTheme = useCallback(() => {
+    setThemeState((current) => (current === "light" ? "dark" : "light"));
+  }, []);
+
+  const value = useMemo(() => [theme, setTheme, toggleTheme], [theme, setTheme, toggleTheme]);
+
+  return createElement(ThemeContext.Provider, { value }, children);
+}
+
+export function useTheme() {
+  return useContext(ThemeContext);
 }

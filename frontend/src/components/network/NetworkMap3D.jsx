@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Billboard, Grid, Line, OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { prototypeNetwork } from "../../data/prototypeNetwork";
 import { polygonCentroid } from "../../utils/networkGeometry";
 import { matchesStatusFilter, statusColor } from "../../utils/status";
+import { useTheme } from "../../hooks/useTheme";
 import {
   DEFAULT_CAMERA_POS,
   highlightSet,
@@ -315,21 +316,22 @@ function Scene({
   focusId,
   focusToken,
   controlsRef,
+  palette,
 }) {
   const highlight = highlightSet(hoveredId || selectedId);
 
   return (
     <>
-      <color attach="background" args={["#07101c"]} />
-      <fog attach="fog" args={["#07101c", 850, 2600]} />
-      <ambientLight intensity={0.32} />
-      <hemisphereLight args={["#9bb4ff", "#0a121c", 0.4]} />
-      <directionalLight position={[420, 620, 160]} intensity={0.9} color="#d7e4ff" />
-      <directionalLight position={[-260, 280, 420]} intensity={0.32} color="#6d7cff" />
+      <color attach="background" args={[palette.bg]} />
+      <fog attach="fog" args={[palette.bg, 850, 2600]} />
+      <ambientLight intensity={palette.ambient} />
+      <hemisphereLight args={[palette.hemiSky, palette.hemiGround, 0.4]} />
+      <directionalLight position={[420, 620, 160]} intensity={0.9} color={palette.keyLight} />
+      <directionalLight position={[-260, 280, 420]} intensity={0.32} color={palette.fillLight} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[600, -0.4, 350]} receiveShadow>
         <planeGeometry args={[1800, 1200]} />
-        <meshStandardMaterial color="#08111d" />
+        <meshStandardMaterial color={palette.ground} />
       </mesh>
 
       {grid && (
@@ -338,10 +340,10 @@ function Scene({
           args={[1400, 900]}
           cellSize={100}
           cellThickness={0.55}
-          cellColor="#17324f"
+          cellColor={palette.gridCell}
           sectionSize={200}
           sectionThickness={1.05}
-          sectionColor="#35557a"
+          sectionColor={palette.gridSection}
           fadeDistance={2400}
           infiniteGrid={false}
         />
@@ -427,6 +429,30 @@ export default function NetworkMap3D({
   const controlsRef = useRef(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [tip, setTip] = useState(null);
+  const [theme] = useTheme();
+  const palette = theme === "light"
+    ? {
+        bg: "#e8eef8",
+        ground: "#f4f7fc",
+        hemiSky: "#c9d7ff",
+        hemiGround: "#d7deea",
+        keyLight: "#ffffff",
+        fillLight: "#8ea4ff",
+        gridCell: "#c5d0e0",
+        gridSection: "#9aa8c4",
+        ambient: 0.55,
+      }
+    : {
+        bg: "#07101c",
+        ground: "#08111d",
+        hemiSky: "#9bb4ff",
+        hemiGround: "#0a121c",
+        keyLight: "#d7e4ff",
+        fillLight: "#6d7cff",
+        gridCell: "#17324f",
+        gridSection: "#35557a",
+        ambient: 0.32,
+      };
 
   const handleHover = (item, event) => {
     if (!item) {
@@ -467,6 +493,7 @@ export default function NetworkMap3D({
           focusId={focusId}
           focusToken={focusToken}
           controlsRef={controlsRef}
+          palette={palette}
         />
       </Canvas>
       {tip && (

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Icon } from "../ui/Icons";
+import ThemeToggle from "../ui/ThemeToggle";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard" },
@@ -14,8 +15,6 @@ const NAV = [
 export default function Sidebar({
   page,
   onNavigate,
-  theme = "dark",
-  onThemeChange,
   mobileOpen = false,
   onCloseMobile,
 }) {
@@ -86,24 +85,7 @@ export default function Sidebar({
             <Icon name="chevronDown" size={14} />
           </button>
 
-          <div className="theme-toggle" role="group" aria-label="Theme">
-            <button
-              type="button"
-              className={theme === "light" ? "on" : ""}
-              onClick={() => onThemeChange?.("light")}
-            >
-              <Icon name="sun" size={13} />
-              Light
-            </button>
-            <button
-              type="button"
-              className={theme === "dark" ? "on" : ""}
-              onClick={() => onThemeChange?.("dark")}
-            >
-              <Icon name="moon" size={13} />
-              Dark
-            </button>
-          </div>
+          <ThemeToggle />
         </div>
       </aside>
     </>

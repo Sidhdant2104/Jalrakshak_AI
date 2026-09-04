@@ -8,19 +8,19 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set in .env")
+engine = None
+SessionLocal = None
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-)
-
-SessionLocal = sessionmaker(
-    bind=engine,
-    autocommit=False,
-    autoflush=False,
-)
+if DATABASE_URL:
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+    )
+    SessionLocal = sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+    )
 
 
 class Base(DeclarativeBase):
@@ -28,6 +28,14 @@ class Base(DeclarativeBase):
 
 
 def get_db():
+    if SessionLocal is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=503,
+            detail="DATABASE_URL is not configured",
+        )
+
     db = SessionLocal()
     try:
         yield db
@@ -35,6 +43,12 @@ def get_db():
         db.close()
 
 
-def test_database_connection():
-    with engine.connect() as connection:
-        connection.execute(text("SELECT 1"))
+def test_database_connection() -> bool:
+    if engine is None:
+        return False
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False

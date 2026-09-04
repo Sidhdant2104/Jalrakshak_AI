@@ -12,6 +12,7 @@ import {
   viewAround,
 } from "../../utils/networkGeometry";
 import { matchesStatusFilter, statusColor } from "../../utils/status";
+import { useTheme } from "../../hooks/useTheme";
 
 function zoneFill(zone) {
   if (zone.zoneType === "MINING") return "rgba(245, 158, 11, 0.12)";
@@ -39,6 +40,10 @@ export default function NetworkMap({
   command = null,
 }) {
   const { nodes, pipelines, valves = [] } = prototypeNetwork;
+  const [theme] = useTheme();
+  const markerFill = theme === "light" ? "#ffffff" : "#08101d";
+  const labelFill = theme === "light" ? "#172033" : "#f3f6ff";
+  const idFill = theme === "light" ? "#667085" : "#8b9cc0";
   const svgRef = useRef(null);
   const uid = useId().replace(/:/g, "");
   const [view, setView] = useState(BASE_VIEW);
@@ -348,25 +353,25 @@ export default function NetworkMap({
                   y={y - 15}
                   width="30"
                   height="30"
-                  fill="#08101d"
+                  fill={markerFill}
                   stroke={color}
                   strokeWidth={active ? 2.8 : 2}
                   transform={`rotate(45 ${x} ${y})`}
                 />
               )}
               {shape === "sensor" && (
-                <rect x={x - 15} y={y - 15} width="30" height="30" rx="3" fill="#08101d" stroke={color} strokeWidth={active ? 2.8 : 2} />
+                <rect x={x - 15} y={y - 15} width="30" height="30" rx="3" fill={markerFill} stroke={color} strokeWidth={active ? 2.8 : 2} />
               )}
               {shape === "source" && (
-                <circle cx={x} cy={y} r="18" fill="#08101d" stroke={color} strokeWidth={active ? 2.8 : 2} />
+                <circle cx={x} cy={y} r="18" fill={markerFill} stroke={color} strokeWidth={active ? 2.8 : 2} />
               )}
-              {shape === "default" && <circle cx={x} cy={y} r="16" fill="#08101d" stroke={color} strokeWidth="2" />}
+              {shape === "default" && <circle cx={x} cy={y} r="16" fill={markerFill} stroke={color} strokeWidth="2" />}
               <circle cx={x} cy={y} r="5" fill={color} />
-              <text x={x} y={y + 34} textAnchor="middle" fontSize={labelFont} fontWeight="700" fill="#f3f6ff">
+              <text x={x} y={y + 34} textAnchor="middle" fontSize={labelFont} fontWeight="700" fill={labelFill}>
                 {compact ? node.id : node.name}
               </text>
               {!compact && (
-                <text x={x} y={y + 48} textAnchor="middle" fontSize="10" fill="#8b9cc0">
+                <text x={x} y={y + 48} textAnchor="middle" fontSize="10" fill={idFill}>
                   {node.id}
                   {node.device_id ? ` · ${node.device_id}` : ""}
                 </text>
@@ -380,7 +385,7 @@ export default function NetworkMap({
           const { x, y } = valve.position;
           return (
             <g key={valve.id} data-hit onClick={(e) => { e.stopPropagation(); onSelect?.({ kind: "valve", id: valve.id, data: valve }); }}>
-              <rect x={x - 9} y={y - 9} width="18" height="18" fill="#08101d" stroke="#e2e8ff" transform={`rotate(45 ${x} ${y})`} />
+              <rect x={x - 9} y={y - 9} width="18" height="18" fill={markerFill} stroke="#e2e8ff" transform={`rotate(45 ${x} ${y})`} />
             </g>
           );
         })}

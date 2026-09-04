@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { Icon } from "../ui/Icons";
+import ThemeToggle from "../ui/ThemeToggle";
 import { useTheme } from "../../hooks/useTheme";
 
 export default function AppShell({ page, onNavigate, children, title, subtitle }) {
-  const [theme, setTheme] = useTheme();
+  const [theme] = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isDashboard = page === "dashboard";
 
@@ -24,8 +25,6 @@ export default function AppShell({ page, onNavigate, children, title, subtitle }
       <Sidebar
         page={page}
         onNavigate={onNavigate}
-        theme={theme}
-        onThemeChange={setTheme}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
@@ -45,6 +44,7 @@ export default function AppShell({ page, onNavigate, children, title, subtitle }
             <img src="/logo-mark.png?v=3" alt="JalRakshak AI" />
             <strong>JalRakshak AI</strong>
           </div>
+          <ThemeToggle compact />
           <button type="button" className="report-btn report-btn-compact" onClick={() => onNavigate("alerts")}>
             <Icon name="plus" size={15} />
             <span className="report-label">Report</span>
@@ -58,6 +58,7 @@ export default function AppShell({ page, onNavigate, children, title, subtitle }
               <p className="muted">Here&apos;s your real-time water network overview</p>
             </div>
             <div className="topbar-actions">
+              <ThemeToggle compact />
               <button type="button" className="icon-action" aria-label="Notifications">
                 <Icon name="bell" size={16} />
                 <i className="notif-dot" />
@@ -87,6 +88,7 @@ export default function AppShell({ page, onNavigate, children, title, subtitle }
               {subtitle ? <p className="muted">{subtitle}</p> : null}
             </div>
             <div className="topbar-actions">
+              <ThemeToggle compact />
               <button type="button" className="icon-action" aria-label="Notifications">
                 <Icon name="bell" size={16} />
               </button>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Card from "../components/ui/Card";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 export default function SettingsPage() {
   const [refresh, setRefresh] = useState("15s");
@@ -7,6 +8,10 @@ export default function SettingsPage() {
 
   return (
     <div className="stack narrow">
+      <Card eyebrow="Appearance" title="Display theme">
+        <p className="tiny-note">Switch between light and dark command-center palettes. Your choice is saved on this device.</p>
+        <ThemeToggle />
+      </Card>
       <Card eyebrow="Console" title="Prototype settings">
         <label className="field">
           <span>Auto-refresh</span>
