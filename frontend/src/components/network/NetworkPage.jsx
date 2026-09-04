@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import NetworkMap from "./NetworkMap";
 import NetworkDetails from "./NetworkDetails";
+import Map3DBoundary from "./Map3DBoundary";
 import { prototypeNetwork } from "../../data/prototypeNetwork";
 
 const NetworkMap3D = lazy(() => import("./NetworkMap3D"));
@@ -122,19 +123,21 @@ export default function NetworkPage({ selection, onSelect, focusToken = 0 }) {
       <div className="network-fullscreen">
         <div className="map-frame">
           {mode === "3d" ? (
-            <Suspense fallback={<div className="map-canvas map-3d"><p className="muted" style={{ padding: 16 }}>Loading 3D network…</p></div>}>
-              <NetworkMap3D
-                selectedId={selection?.id}
-                onSelect={onSelect}
-                layers={layers}
-                statusFilter={statusFilter}
-                focusId={selection?.id}
-                focusToken={focusToken}
-                command={command}
-                flow={flow}
-                grid={grid}
-              />
-            </Suspense>
+            <Map3DBoundary>
+              <Suspense fallback={<div className="map-canvas map-3d"><p className="muted" style={{ padding: 16 }}>Loading 3D network…</p></div>}>
+                <NetworkMap3D
+                  selectedId={selection?.id}
+                  onSelect={onSelect}
+                  layers={layers}
+                  statusFilter={statusFilter}
+                  focusId={selection?.id}
+                  focusToken={focusToken}
+                  command={command}
+                  flow={flow}
+                  grid={grid}
+                />
+              </Suspense>
+            </Map3DBoundary>
           ) : (
             <NetworkMap
               selectedId={selection?.id}

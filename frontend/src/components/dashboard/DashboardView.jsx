@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import NetworkMap from "../network/NetworkMap";
+import Map3DBoundary from "../network/Map3DBoundary";
 import Sparkline, { MiniBars } from "../ui/Sparkline";
 import { Icon } from "../ui/Icons";
 import {
@@ -101,15 +102,17 @@ function DashboardNetworkCard({ onLocate }) {
     >
       <div className="map-embed dash-map-embed">
         {mode === "3d" ? (
-          <Suspense fallback={<div className="map-canvas map-3d"><p className="muted" style={{ padding: 16 }}>Loading 3D network…</p></div>}>
-            <NetworkMap3D
-              onSelect={(sel) => onLocate?.(sel)}
-              layers={{ zones: true, sensors: true, infra: true, pipes: true }}
-              statusFilter="all"
-              flow
-              grid
-            />
-          </Suspense>
+          <Map3DBoundary>
+            <Suspense fallback={<div className="map-canvas map-3d"><p className="muted" style={{ padding: 16 }}>Loading 3D network…</p></div>}>
+              <NetworkMap3D
+                onSelect={(sel) => onLocate?.(sel)}
+                layers={{ zones: true, sensors: true, infra: true, pipes: true }}
+                statusFilter="all"
+                flow
+                grid
+              />
+            </Suspense>
+          </Map3DBoundary>
         ) : (
           <NetworkMap
             compact

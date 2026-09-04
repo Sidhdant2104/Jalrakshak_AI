@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Billboard, Grid, Line, OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
@@ -430,29 +430,33 @@ export default function NetworkMap3D({
   const [hoveredId, setHoveredId] = useState(null);
   const [tip, setTip] = useState(null);
   const [theme] = useTheme();
-  const palette = theme === "light"
-    ? {
-        bg: "#e8eef8",
-        ground: "#f4f7fc",
-        hemiSky: "#c9d7ff",
-        hemiGround: "#d7deea",
-        keyLight: "#ffffff",
-        fillLight: "#8ea4ff",
-        gridCell: "#c5d0e0",
-        gridSection: "#9aa8c4",
-        ambient: 0.55,
-      }
-    : {
-        bg: "#07101c",
-        ground: "#08111d",
-        hemiSky: "#9bb4ff",
-        hemiGround: "#0a121c",
-        keyLight: "#d7e4ff",
-        fillLight: "#6d7cff",
-        gridCell: "#17324f",
-        gridSection: "#35557a",
-        ambient: 0.32,
-      };
+  const palette = useMemo(
+    () =>
+      theme === "light"
+        ? {
+            bg: "#e8eef8",
+            ground: "#f4f7fc",
+            hemiSky: "#c9d7ff",
+            hemiGround: "#d7deea",
+            keyLight: "#ffffff",
+            fillLight: "#8ea4ff",
+            gridCell: "#c5d0e0",
+            gridSection: "#9aa8c4",
+            ambient: 0.55,
+          }
+        : {
+            bg: "#07101c",
+            ground: "#08111d",
+            hemiSky: "#9bb4ff",
+            hemiGround: "#0a121c",
+            keyLight: "#d7e4ff",
+            fillLight: "#6d7cff",
+            gridCell: "#17324f",
+            gridSection: "#35557a",
+            ambient: 0.32,
+          },
+    [theme],
+  );
 
   const handleHover = (item, event) => {
     if (!item) {
