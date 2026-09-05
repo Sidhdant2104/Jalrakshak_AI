@@ -7,19 +7,17 @@
 //                  WIFI CONFIGURATION
 // ============================================================
 
-const char* WIFI_SSID = "YOUR_WIFI_NAME";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID = "YOUR WIFI_NAME";
+const char* WIFI_PASSWORD = "YOUR WIFI_PASSWORD";
 
 // FastAPI running on your PC
-const char* API_URL = "http://192.168.1.52:8000/api/v1/readings";
-
+const char* API_URL = "http://172.20.10.2:8000/api/v1/readings";
 
 // ============================================================
 //                  DEVICE CONFIGURATION
 // ============================================================
 
 const char* DEVICE_ID = "ESP32_001";
-
 
 // ============================================================
 //                  PIN CONFIGURATION
@@ -38,7 +36,6 @@ const char* DEVICE_ID = "ESP32_001";
 // Both DS18B20 sensors share this OneWire bus
 #define ONE_WIRE_BUS     4
 
-
 // ============================================================
 //                  CALIBRATION CONSTANTS
 // ============================================================
@@ -53,6 +50,11 @@ const int ADC_RESOLUTION = 4096;
 const int TDS_SAMPLES = 20;
 const int TURBIDITY_SAMPLES = 20;
 
+// ============================================================
+//                  10-SECOND AVERAGING
+// ============================================================
+
+const int AVERAGING_SAMPLES = 10;
 
 // ============================================================
 //                  GLOBAL VARIABLES
@@ -69,6 +71,41 @@ float totalLiters2 = 0.0;
 
 unsigned long lastFlowMillis = 0;
 
+// ============================================================
+//                  AVERAGING VARIABLES
+// ============================================================
+
+// Number of 1-second samples collected
+int sampleCount = 0;
+
+// Flow
+float sumFlow1 = 0.0;
+float sumFlow2 = 0.0;
+
+// Temperature
+float sumTemperature1 = 0.0;
+float sumTemperature2 = 0.0;
+
+int validTemperatureSamples1 = 0;
+int validTemperatureSamples2 = 0;
+
+// TDS
+float sumTDS1 = 0.0;
+float sumTDS2 = 0.0;
+
+float sumTDSVoltage1 = 0.0;
+float sumTDSVoltage2 = 0.0;
+
+// Turbidity
+float sumTurbidity1 = 0.0;
+float sumTurbidity2 = 0.0;
+
+float sumTurbidityVoltage1 = 0.0;
+float sumTurbidityVoltage2 = 0.0;
+
+// Flow pulses
+unsigned long sumPulses1 = 0;
+unsigned long sumPulses2 = 0;
 
 // ============================================================
 //                  TEMPERATURE SENSOR
@@ -76,7 +113,6 @@ unsigned long lastFlowMillis = 0;
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-
 
 // ============================================================
 //                  FLOW INTERRUPTS
@@ -91,7 +127,6 @@ void IRAM_ATTR pulseCounter2()
 {
   pulseCount2++;
 }
-
 
 // ============================================================
 //                  ANALOG SENSOR FUNCTIONS
@@ -112,6 +147,9 @@ float readAverageVoltage(int pin, int samples)
   return (averageRaw / (ADC_RESOLUTION - 1)) * VREF;
 }
 
+// ============================================================
+//                  TDS CALCULATION
+// ============================================================
 
 float calculateTDS(float voltage, float temperature)
 {
@@ -129,6 +167,9 @@ float calculateTDS(float voltage, float temperature)
   return (tdsValue < 0) ? 0.0 : tdsValue;
 }
 
+// ============================================================
+//                  TURBIDITY CALCULATION
+// ============================================================
 
 float voltageToNTU(float measuredVoltage)
 {
@@ -162,7 +203,6 @@ float voltageToNTU(float measuredVoltage)
   return ntu;
 }
 
-
 // ============================================================
 //                  WIFI CONNECTION
 // ============================================================
@@ -194,6 +234,7 @@ void connectWiFi()
   if (WiFi.status() == WL_CONNECTED)
   {
     Serial.println("WiFi connected!");
+
     Serial.print("ESP32 IP address: ");
     Serial.println(WiFi.localIP());
 
@@ -208,24 +249,58 @@ void connectWiFi()
   Serial.println("============================================================");
 }
 
+// ============================================================
+//                  RESET AVERAGING DATA
+// ============================================================
+
+void resetAverages()
+{
+  sampleCount = 0;
+
+  sumFlow1 = 0.0;
+  sumFlow2 = 0.0;
+
+  sumTemperature1 = 0.0;
+  sumTemperature2 = 0.0;
+
+  validTemperatureSamples1 = 0;
+  validTemperatureSamples2 = 0;
+
+  sumTDS1 = 0.0;
+  sumTDS2 = 0.0;
+
+  sumTDSVoltage1 = 0.0;
+  sumTDSVoltage2 = 0.0;
+
+  sumTurbidity1 = 0.0;
+  sumTurbidity2 = 0.0;
+
+  sumTurbidityVoltage1 = 0.0;
+  sumTurbidityVoltage2 = 0.0;
+
+  sumPulses1 = 0;
+  sumPulses2 = 0;
+}
 
 // ============================================================
-//                  SEND DATA TO FASTAPI
+//                  SEND AVERAGED DATA TO FASTAPI
 // ============================================================
 
 void sendReadingToAPI(
-    float temperature1,
-    float temperature2,
-    float tdsVoltage1,
-    float tdsVoltage2,
-    float tds1,
-    float tds2,
-    float turbidityVoltage1,
-    float turbidityVoltage2,
-    float turbidity1,
-    float turbidity2,
-    unsigned long pulses1,
-    unsigned long pulses2)
+    float averageFlow1,
+    float averageFlow2,
+    float averageTemperature1,
+    float averageTemperature2,
+    float averageTDSVoltage1,
+    float averageTDSVoltage2,
+    float averageTDS1,
+    float averageTDS2,
+    float averageTurbidityVoltage1,
+    float averageTurbidityVoltage2,
+    float averageTurbidity1,
+    float averageTurbidity2,
+    unsigned long totalPulses1,
+    unsigned long totalPulses2)
 {
   if (WiFi.status() != WL_CONNECTED)
   {
@@ -247,12 +322,6 @@ void sendReadingToAPI(
 
   unsigned long uptime = millis();
 
-  String temperatureStatus1 =
-      (temperature1 == DEVICE_DISCONNECTED_C) ? "ERROR" : "OK";
-
-  String temperatureStatus2 =
-      (temperature2 == DEVICE_DISCONNECTED_C) ? "ERROR" : "OK";
-
   String json = "{";
 
   json += "\"device_id\":\"";
@@ -263,14 +332,16 @@ void sendReadingToAPI(
   json += String(uptime);
   json += ",";
 
+  // 10-second average flow
   json += "\"flow_1_lpm\":";
-  json += String(flowRate1, 2);
+  json += String(averageFlow1, 2);
   json += ",";
 
   json += "\"flow_2_lpm\":";
-  json += String(flowRate2, 2);
+  json += String(averageFlow2, 2);
   json += ",";
 
+  // Cumulative totals
   json += "\"total_liters_1\":";
   json += String(totalLiters1, 2);
   json += ",";
@@ -279,60 +350,59 @@ void sendReadingToAPI(
   json += String(totalLiters2, 2);
   json += ",";
 
+  // Total pulses during 10-second window
   json += "\"flow_pulses_1\":";
-  json += String(pulses1);
+  json += String(totalPulses1);
   json += ",";
 
   json += "\"flow_pulses_2\":";
-  json += String(pulses2);
+  json += String(totalPulses2);
   json += ",";
 
+  // Temperature averages
   json += "\"temperature_1_c\":";
-  json += String(temperature1, 2);
+  json += String(averageTemperature1, 2);
   json += ",";
 
   json += "\"temperature_2_c\":";
-  json += String(temperature2, 2);
+  json += String(averageTemperature2, 2);
   json += ",";
 
-  json += "\"temperature_1_status\":\"";
-  json += temperatureStatus1;
-  json += "\",";
+  json += "\"temperature_1_status\":\"OK\",";
+  json += "\"temperature_2_status\":\"OK\",";
 
-  json += "\"temperature_2_status\":\"";
-  json += temperatureStatus2;
-  json += "\",";
-
+  // TDS averages
   json += "\"tds_1_ppm\":";
-  json += String(tds1, 1);
+  json += String(averageTDS1, 1);
   json += ",";
 
   json += "\"tds_2_ppm\":";
-  json += String(tds2, 1);
+  json += String(averageTDS2, 1);
   json += ",";
 
   json += "\"tds_voltage_1_v\":";
-  json += String(tdsVoltage1, 3);
+  json += String(averageTDSVoltage1, 3);
   json += ",";
 
   json += "\"tds_voltage_2_v\":";
-  json += String(tdsVoltage2, 3);
+  json += String(averageTDSVoltage2, 3);
   json += ",";
 
+  // Turbidity averages
   json += "\"turbidity_1_ntu\":";
-  json += String(turbidity1, 1);
+  json += String(averageTurbidity1, 1);
   json += ",";
 
   json += "\"turbidity_2_ntu\":";
-  json += String(turbidity2, 1);
+  json += String(averageTurbidity2, 1);
   json += ",";
 
   json += "\"turbidity_voltage_1_v\":";
-  json += String(turbidityVoltage1, 3);
+  json += String(averageTurbidityVoltage1, 3);
   json += ",";
 
   json += "\"turbidity_voltage_2_v\":";
-  json += String(turbidityVoltage2, 3);
+  json += String(averageTurbidityVoltage2, 3);
   json += ",";
 
   json += "\"quality\":\"VALID\"";
@@ -340,7 +410,10 @@ void sendReadingToAPI(
   json += "}";
 
   Serial.println();
-  Serial.println("Sending reading to FastAPI...");
+  Serial.println("============================================================");
+  Serial.println("        SENDING 10-SECOND AVERAGE TO FASTAPI");
+  Serial.println("============================================================");
+
   Serial.println(json);
 
   int httpResponseCode = http.POST(json);
@@ -357,7 +430,7 @@ void sendReadingToAPI(
 
     if (httpResponseCode >= 200 && httpResponseCode < 300)
     {
-      Serial.println(">>> READING SAVED SUCCESSFULLY <<<");
+      Serial.println(">>> 10-SECOND READING SAVED SUCCESSFULLY <<<");
     }
     else
     {
@@ -373,6 +446,158 @@ void sendReadingToAPI(
   http.end();
 }
 
+// ============================================================
+//                  PROCESS 10-SECOND AVERAGE
+// ============================================================
+
+void processAverage()
+{
+  if (sampleCount == 0)
+  {
+    return;
+  }
+
+  float averageFlow1 =
+      sumFlow1 / sampleCount;
+
+  float averageFlow2 =
+      sumFlow2 / sampleCount;
+
+  float averageTemperature1 =
+      (validTemperatureSamples1 > 0)
+      ? sumTemperature1 / validTemperatureSamples1
+      : 25.0;
+
+  float averageTemperature2 =
+      (validTemperatureSamples2 > 0)
+      ? sumTemperature2 / validTemperatureSamples2
+      : 25.0;
+
+  float averageTDSVoltage1 =
+      sumTDSVoltage1 / sampleCount;
+
+  float averageTDSVoltage2 =
+      sumTDSVoltage2 / sampleCount;
+
+  float averageTDS1 =
+      sumTDS1 / sampleCount;
+
+  float averageTDS2 =
+      sumTDS2 / sampleCount;
+
+  float averageTurbidityVoltage1 =
+      sumTurbidityVoltage1 / sampleCount;
+
+  float averageTurbidityVoltage2 =
+      sumTurbidityVoltage2 / sampleCount;
+
+  float averageTurbidity1 =
+      sumTurbidity1 / sampleCount;
+
+  float averageTurbidity2 =
+      sumTurbidity2 / sampleCount;
+
+  Serial.println();
+  Serial.println("############################################################");
+  Serial.println("                 10-SECOND AVERAGE");
+  Serial.println("############################################################");
+
+  Serial.println("SET 1");
+  Serial.println("------------------------------------------------------------");
+
+  Serial.printf(
+      "Average Flow       : %.2f L/min\n",
+      averageFlow1
+  );
+
+  Serial.printf(
+      "Total Liters       : %.2f L\n",
+      totalLiters1
+  );
+
+  Serial.printf(
+      "Average Temperature: %.2f °C\n",
+      averageTemperature1
+  );
+
+  Serial.printf(
+      "Average TDS        : %.1f ppm\n",
+      averageTDS1
+  );
+
+  Serial.printf(
+      "Average Turbidity  : %.1f NTU\n",
+      averageTurbidity1
+  );
+
+  Serial.println();
+  Serial.println("SET 2");
+  Serial.println("------------------------------------------------------------");
+
+  Serial.printf(
+      "Average Flow       : %.2f L/min\n",
+      averageFlow2
+  );
+
+  Serial.printf(
+      "Total Liters       : %.2f L\n",
+      totalLiters2
+  );
+
+  Serial.printf(
+      "Average Temperature: %.2f °C\n",
+      averageTemperature2
+  );
+
+  Serial.printf(
+      "Average TDS        : %.1f ppm\n",
+      averageTDS2
+  );
+
+  Serial.printf(
+      "Average Turbidity  : %.1f NTU\n",
+      averageTurbidity2
+  );
+
+  Serial.println();
+  Serial.printf(
+      "Samples averaged   : %d\n",
+      sampleCount
+  );
+
+  Serial.printf(
+      "Flow pulses SET 1  : %lu\n",
+      sumPulses1
+  );
+
+  Serial.printf(
+      "Flow pulses SET 2  : %lu\n",
+      sumPulses2
+  );
+
+  Serial.println("############################################################");
+
+  // Send ONE database reading
+  sendReadingToAPI(
+      averageFlow1,
+      averageFlow2,
+      averageTemperature1,
+      averageTemperature2,
+      averageTDSVoltage1,
+      averageTDSVoltage2,
+      averageTDS1,
+      averageTDS2,
+      averageTurbidityVoltage1,
+      averageTurbidityVoltage2,
+      averageTurbidity1,
+      averageTurbidity2,
+      sumPulses1,
+      sumPulses2
+  );
+
+  // Start a fresh 10-second window
+  resetAverages();
+}
 
 // ============================================================
 //                  SETUP
@@ -410,6 +635,8 @@ void setup()
 
   lastFlowMillis = millis();
 
+  resetAverages();
+
   Serial.println();
   Serial.println("============================================================");
   Serial.println("              JALRAKSHAK WATER MONITORING");
@@ -418,6 +645,8 @@ void setup()
   Serial.print("DS18B20 sensors found: ");
   Serial.println(sensors.getDeviceCount());
 
+  Serial.println("10-second averaging: ENABLED");
+
   Serial.println("============================================================");
 
   // Connect WiFi
@@ -425,9 +654,9 @@ void setup()
 
   Serial.println();
   Serial.println("System ready.");
+  Serial.println("Collecting 10 samples before sending...");
   Serial.println("============================================================");
 }
-
 
 // ============================================================
 //                  MAIN LOOP
@@ -437,6 +666,7 @@ void loop()
 {
   unsigned long currentMillis = millis();
 
+  // Take one sensor sample approximately every second
   if (currentMillis - lastFlowMillis >= 1000)
   {
     // --------------------------------------------------------
@@ -470,7 +700,6 @@ void loop()
     totalLiters2 +=
         (flowRate2 / 60.0) * intervalSeconds;
 
-
     // --------------------------------------------------------
     // TEMPERATURE
     // --------------------------------------------------------
@@ -483,6 +712,20 @@ void loop()
     float temperature2 =
         sensors.getTempCByIndex(1);
 
+    // Only average valid temperature readings
+    if (temperature1 != DEVICE_DISCONNECTED_C)
+    {
+      sumTemperature1 += temperature1;
+      validTemperatureSamples1++;
+    }
+
+    if (temperature2 != DEVICE_DISCONNECTED_C)
+    {
+      sumTemperature2 += temperature2;
+      validTemperatureSamples2++;
+    }
+
+    // Temperature compensation for TDS
     float tempComp1 =
         (temperature1 == DEVICE_DISCONNECTED_C)
         ? 25.0
@@ -493,23 +736,33 @@ void loop()
         ? 25.0
         : temperature2;
 
-
     // --------------------------------------------------------
     // TDS
     // --------------------------------------------------------
 
     float tdsVoltage1 =
-        readAverageVoltage(TDS_PIN_1, TDS_SAMPLES);
+        readAverageVoltage(
+            TDS_PIN_1,
+            TDS_SAMPLES
+        );
 
     float tdsVoltage2 =
-        readAverageVoltage(TDS_PIN_2, TDS_SAMPLES);
+        readAverageVoltage(
+            TDS_PIN_2,
+            TDS_SAMPLES
+        );
 
     float tds1 =
-        calculateTDS(tdsVoltage1, tempComp1);
+        calculateTDS(
+            tdsVoltage1,
+            tempComp1
+        );
 
     float tds2 =
-        calculateTDS(tdsVoltage2, tempComp2);
-
+        calculateTDS(
+            tdsVoltage2,
+            tempComp2
+        );
 
     // --------------------------------------------------------
     // TURBIDITY
@@ -533,116 +786,80 @@ void loop()
     float turbidity2 =
         voltageToNTU(turbidityVoltage2);
 
+    // --------------------------------------------------------
+    // ADD CURRENT SAMPLE TO 10-SECOND WINDOW
+    // --------------------------------------------------------
+
+    sampleCount++;
+
+    // Flow
+    sumFlow1 += flowRate1;
+    sumFlow2 += flowRate2;
+
+    // TDS
+    sumTDS1 += tds1;
+    sumTDS2 += tds2;
+
+    sumTDSVoltage1 += tdsVoltage1;
+    sumTDSVoltage2 += tdsVoltage2;
+
+    // Turbidity
+    sumTurbidity1 += turbidity1;
+    sumTurbidity2 += turbidity2;
+
+    sumTurbidityVoltage1 += turbidityVoltage1;
+    sumTurbidityVoltage2 += turbidityVoltage2;
+
+    // Flow pulses
+    sumPulses1 += pulses1;
+    sumPulses2 += pulses2;
 
     // --------------------------------------------------------
-    // SERIAL DASHBOARD
+    // SHOW SAMPLE PROGRESS
     // --------------------------------------------------------
 
     Serial.println();
-    Serial.println("============================================================");
-    Serial.println("                 WATER MONITORING DASHBOARD");
-    Serial.println("============================================================");
-
-    Serial.println("SET 1");
     Serial.println("------------------------------------------------------------");
 
     Serial.printf(
-        "Flow       : %.2f L/min\n",
-        flowRate1
+        "Sample %d / %d\n",
+        sampleCount,
+        AVERAGING_SAMPLES
     );
 
     Serial.printf(
-        "Total      : %.2f L\n",
-        totalLiters1
-    );
-
-    if (temperature1 == DEVICE_DISCONNECTED_C)
-    {
-      Serial.println(
-          "Temperature: ERROR"
-      );
-    }
-    else
-    {
-      Serial.printf(
-          "Temperature: %.2f °C\n",
-          temperature1
-      );
-    }
-
-    Serial.printf(
-        "TDS        : %.1f ppm (%.3f V)\n",
-        tds1,
-        tdsVoltage1
-    );
-
-    Serial.printf(
-        "Turbidity  : %.1f NTU (%.3f V)\n",
-        turbidity1,
-        turbidityVoltage1
-    );
-
-
-    Serial.println();
-    Serial.println("SET 2");
-    Serial.println("------------------------------------------------------------");
-
-    Serial.printf(
-        "Flow       : %.2f L/min\n",
+        "Flow: %.2f / %.2f L/min\n",
+        flowRate1,
         flowRate2
     );
 
     Serial.printf(
-        "Total      : %.2f L\n",
-        totalLiters2
-    );
-
-    if (temperature2 == DEVICE_DISCONNECTED_C)
-    {
-      Serial.println(
-          "Temperature: ERROR"
-      );
-    }
-    else
-    {
-      Serial.printf(
-          "Temperature: %.2f °C\n",
-          temperature2
-      );
-    }
-
-    Serial.printf(
-        "TDS        : %.1f ppm (%.3f V)\n",
-        tds2,
-        tdsVoltage2
-    );
-
-    Serial.printf(
-        "Turbidity  : %.1f NTU (%.3f V)\n",
-        turbidity2,
-        turbidityVoltage2
-    );
-
-    Serial.println("============================================================");
-
-
-    // --------------------------------------------------------
-    // SEND TO FASTAPI
-    // --------------------------------------------------------
-
-    sendReadingToAPI(
+        "Temperature: %.2f / %.2f °C\n",
         temperature1,
-        temperature2,
-        tdsVoltage1,
-        tdsVoltage2,
-        tds1,
-        tds2,
-        turbidityVoltage1,
-        turbidityVoltage2,
-        turbidity1,
-        turbidity2,
-        pulses1,
-        pulses2
+        temperature2
     );
+
+    Serial.printf(
+        "TDS: %.1f / %.1f ppm\n",
+        tds1,
+        tds2
+    );
+
+    Serial.printf(
+        "Turbidity: %.1f / %.1f NTU\n",
+        turbidity1,
+        turbidity2
+    );
+
+    Serial.println("------------------------------------------------------------");
+
+    // --------------------------------------------------------
+    // AFTER 10 SAMPLES
+    // --------------------------------------------------------
+
+    if (sampleCount >= AVERAGING_SAMPLES)
+    {
+      processAverage();
+    }
   }
 }
